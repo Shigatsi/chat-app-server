@@ -45,7 +45,7 @@ io.on("connection", (socket) => {
     const currTime = new Date().toLocaleTimeString().slice(0, 5);
     io.to(user.room).emit("message", {
       user: user.name,
-      date: currDate + currTime,
+      date: `${currDate} ${currTime}`,
       text: message,
     });
     calllback();
@@ -53,6 +53,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User had left!");
+
+    const user = removeUser(socket.id);
+    io.to(user.room).emit("message", {
+      user: "admin",
+      text: `${user.name} has left!`,
+    });
   });
 });
 
