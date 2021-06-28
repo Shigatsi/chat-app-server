@@ -19,11 +19,18 @@ const router = require("./router");
 app.use(router);
 
 io.on("connection", (socket) => {
-  console.log("We have new connection" + socket.id);
+  console.log("We have new connection " + socket.id);
 
   socket.on("join", ({ name, room }, callback) => {
+    console.log(
+      ">> join of " + socket.id + " to room " + room + " name: " + name
+    );
     const { error, user } = addUser({ id: socket.id, name, room });
-    if (error) return error;
+    if (error) {
+      console.error("error happened", error);
+      socket.disconnect();
+      return error;
+    }
 
     socket.emit("message", {
       user: "admin",
@@ -56,9 +63,13 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User had left!");
+    console.log("User had left! " + socket.id);
 
     const user = removeUser(socket.id);
+    console.log("user ", user);
+    if (!user) {
+      return;
+    }
     io.to(user.room).emit("message", {
       user: "admin",
       text: `${user.name} has left!`,
